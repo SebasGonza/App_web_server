@@ -1,20 +1,38 @@
-const {response} = require('express')
+const { response, request } = require('express');
+const { validationResult } = require('express-validator');
 
-const login = (req, res = response) => {
+const login = (req = require, res = response) => {
+    const { email, password } = req.body;
+    const errores = validationResult(req);
+
+    console.log(errores);
+
+    if (!errores.isEmpty()) {
+        return res.status(400).json({
+            ok: false,
+            errors: errores.mapped()
+        });
+    }
+
+    console.log(email, password);
     res.json({
         ok: true,
-        msg: "Login good",
+        msg: "Accedio satisfactoriamente",
     });
 };
 
-const register = (req, res) => {
+const register = (req = request, res = response) => {
+    // console.log(req.body);
+    const { email, name, password } = req.body;
+    console.log(email, name, password);
     res.json({
         ok: true,
         msg: "Crear Usuario /register",
     });
+
 };
 
-const revalidarToken = (req, res) => {
+const revalidarToken = (req = request, res = response) => {
     res.json({
         ok: true,
         msg: "Revalidar Token /renew",
