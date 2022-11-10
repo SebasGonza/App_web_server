@@ -3,11 +3,49 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { generarJwt } = require('../helpers/jwt');
 
-const login = (req = require, res = response) => {
-    res.json({
-        ok: true,
-        msg: "Accedio satisfactoriamente",
-    });
+const login = async (req = require, res = response) => {
+    const { email, password } = req.body;
+    try {
+
+        const dbUser = await User.findOne({ email });
+
+        if (!dbUser) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Las credenciales están erroneas'
+            });
+        }
+
+        const validPassword = bcrypt.compareSync(password, dbUser.password);
+
+        if (!validPassword) {
+            return res.status(400).json({
+                ok: true,
+                msg: 'Las credenciales están erroneas*'
+            })
+        }
+
+        //Generar el Jwt
+        const token = await generarJwt(dbUser.uid, dbUser.name);
+
+        // Respuesta del servicio
+
+        res.json({
+            ok: true,
+            uid: dbUser.uid,
+            name: dbUser.name,
+            token
+        })
+
+    } catch (error) {
+        console.log(error);
+
+        return res.status(500).json({
+            ok: false,
+            msg: "Hable con el administrador"
+        });
+
+    }
 };
 
 const register = async (req = request, res = response) => {
@@ -34,7 +72,7 @@ const register = async (req = request, res = response) => {
 
         // Generar el JWT
 
-        const token = await generarJwt(dbUser.id, dbUser.name);
+        // const token = await generarJwt(dbUser.id, dbUser.name);
 
         // Crear el usuario de DB
         await dbUser.save();
@@ -44,7 +82,7 @@ const register = async (req = request, res = response) => {
             ok: true,
             uid: dbUser.id,
             name: User.name,
-            token: token 
+            // token: token
         })
 
 
